@@ -78,6 +78,8 @@ services:
 # CI/CD Jenkins
 # разные uid в контейнере и хост системе, выполнить:
 # chmod -R 777 jenkins/data/
+# при первом запуске пойдет инсталяция jenkins , 
+# необходимо вставить параметр initialAdminPassword в веб интерфейсе
 # параметр initialAdminPassword можно посмотреть в выводе команды:
 # docker-compose logs jenkins
   jenkins:
