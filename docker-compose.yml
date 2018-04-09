@@ -1,0 +1,92 @@
+version: '3.3'
+
+services:
+# Веб сервер
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+     - 80:80
+     - 443:443
+    volumes:
+     - ./nginx/core:/etc/nginx/conf.d
+     - ./nginx/www:/var/www/
+     - ./nginx/logs:/var/log/nginx/
+     - ./nginx/html:/usr/share/nginx/html/
+    links:
+     - php
+
+# PHP интерпретатор 
+# может масштабироваться командой 
+# docker-compose up -d --scale php=<количество контейнеров>
+  php:
+    build: ./php
+    ports:
+     - 9000
+    environment:
+     - HEALTH_CHECK=check
+    volumes:
+     - ./nginx/www:/var/www
+
+# Балансировщик для PHP контейнеров
+# статистика на порту 1936 http://<IP>:1936
+# логин пароль STATS_AUTH
+  lb_php:
+   image: dockercloud/haproxy
+   ports:
+     - 9000
+     - 1936:1936
+   links:
+     - php
+   environment:
+     - MODE=tcp
+     - EXTRA_FRONTEND_SETTINGS_9000=maxconn 1000
+     - SKIP_FORWARDED_PROTO=1
+     - NBPROC=2
+     - BALANCE=static-rr
+     - STATS_AUTH=admin:admin
+   volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+
+# Сервис для визуализации данных elasticsearch
+  kibana:
+   image: docker.elastic.co/kibana/kibana:6.2.3
+   ports:
+     - 5601:5601
+   volumes:
+     - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+
+# Поисковая система
+  elasticsearch:
+   image: docker.elastic.co/elasticsearch/elasticsearch:6.2.3
+   ports:
+     - 9200
+
+# Сбор метрик. из за разницы uid в контейнере и хост системе
+# надо выполнить команду на хост системе 
+# chmod 666 /var/run/docker.sock 
+# для того чтобы контейнер смог читать из сокета докера
+  metricbeat:
+   image: docker.elastic.co/beats/metricbeat:6.2.3
+   volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+     - ./metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
+     - ./metricbeat/fields.yml:/usr/share/metricbeat/fields.yml
+     - ./metricbeat/metricbeat.reference.yml:/usr/share/metricbeat/metricbeat.reference.yml
+     - ./metricbeat/modules.d/:/usr/share/metricbeat/modules.d/
+
+# CI/CD Jenkins
+# разные uid в контейнере и хост системе, выполнить:
+# chmod -R 777 jenkins/data/
+# параметр initialAdminPassword можно посмотреть в выводе команды:
+# docker-compose logs jenkins
+  jenkins:
+   image: 'jenkins/jenkins:latest'
+   ports:
+     - 8080:8080
+     - 8443:8443
+     - 5000:5000
+     - 50000:50000
+   volumes:
+     - /var/run/docker.sock:/var/run/docker.sock
+     - ./jenkins/data:/var/jenkins_home
