@@ -49,28 +49,28 @@ services:
      - /var/run/docker.sock:/var/run/docker.sock
 
 # Сервис для визуализации данных elasticsearch
-  kibana:
-   image: docker.elastic.co/kibana/kibana:6.2.3
-   ports:
-     - 5601:5601
-   volumes:
-     - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
+#  kibana:
+#   image: docker.elastic.co/kibana/kibana:6.2.3
+#   ports:
+#     - 5601:5601
+#   volumes:
+#     - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml
 
 # Поисковая система
-  elasticsearch:
-   image: docker.elastic.co/elasticsearch/elasticsearch:6.2.3
-   ports:
-     - 9200
+#  elasticsearch:
+#   image: docker.elastic.co/elasticsearch/elasticsearch:6.2.3
+#   ports:
+#     - 9200
 
 # Сбор метрик. из за разницы uid в контейнере и хост системе
 # надо выполнить команду на хост системе 
 # chmod 666 /var/run/docker.sock 
 # для того чтобы контейнер смог читать из сокета докера
-  metricbeat:
-   image: docker.elastic.co/beats/metricbeat:6.2.3
-   volumes:
-     - /var/run/docker.sock:/var/run/docker.sock
-     - ./metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
-     - ./metricbeat/fields.yml:/usr/share/metricbeat/fields.yml
-     - ./metricbeat/metricbeat.reference.yml:/usr/share/metricbeat/metricbeat.reference.yml
-     - ./metricbeat/modules.d/:/usr/share/metricbeat/modules.d/
+#  metricbeat:
+#   image: docker.elastic.co/beats/metricbeat:6.2.3
+#   volumes:
+#     - /var/run/docker.sock:/var/run/docker.sock
+#     - ./metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml
+#     - ./metricbeat/fields.yml:/usr/share/metricbeat/fields.yml
+#     - ./metricbeat/metricbeat.reference.yml:/usr/share/metricbeat/metricbeat.reference.yml
+#     - ./metricbeat/modules.d/:/usr/share/metricbeat/modules.d/
